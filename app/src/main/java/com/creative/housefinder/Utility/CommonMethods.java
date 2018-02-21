@@ -10,17 +10,24 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.creative.housefinder.BuildConfig;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -127,6 +134,8 @@ public class CommonMethods {
     public static final String FILE_NAME = "house_coordinates.json";
 
     public static void copyRawFileToExternalMemory(Context context){
+        Log.d("DEBUG","copy start 1");
+
 
         AssetManager assetManager = context.getAssets();
         AssetFileDescriptor assetFileDescriptor = null;
@@ -146,6 +155,7 @@ public class CommonMethods {
             try {
                 file.createNewFile();
                 copyFdToFile(assetFileDescriptor.getFileDescriptor(), file);
+                Log.d("DEBUG","copy finish");
                // return true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -160,6 +170,82 @@ public class CommonMethods {
 
     }
 
+    public static void copyRawFileToExternalMemory2(Context context){
+        Log.d("DEBUG","copy start 1");
+
+
+        AssetManager assetManager = context.getAssets();
+        AssetFileDescriptor assetFileDescriptor = null;
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = assetManager.open("house_coordinates.json");
+
+            // Create new file to copy into.
+            //File file = new File(Environment.getExternalStorageDirectory() + java.io.File.separator + "NewFile.dat");
+            String filename = FILE_NAME;
+            File exportDir = DIRECTORY;
+            File outFile = new File(exportDir, filename);
+
+            if (!exportDir.exists()) {
+                exportDir.mkdirs();
+            }
+
+            try {
+                outFile.createNewFile();
+                out = new FileOutputStream(outFile);
+                copyFile(in, out);
+                Log.d("DEBUG","copy finish");
+               // return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+               // return false;
+            }
+
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }        finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // NOOP
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    // NOOP
+                }
+            }
+        }
+
+    }
+
+    public static String read_file(Context context) {
+        AssetManager assetManager = context.getAssets();
+        try {
+            InputStream fis = assetManager.open("house_coordinates.json");
+            InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+            BufferedReader bufferedReader = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
+        } catch (FileNotFoundException e) {
+            return "";
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
     public static void copyFdToFile(FileDescriptor src, File dst) throws IOException {
         FileChannel inChannel = new FileInputStream(src).getChannel();
         FileChannel outChannel = new FileOutputStream(dst).getChannel();
@@ -170,6 +256,13 @@ public class CommonMethods {
                 inChannel.close();
             if (outChannel != null)
                 outChannel.close();
+        }
+    }
+    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while((read = in.read(buffer)) != -1){
+            out.write(buffer, 0, read);
         }
     }
 

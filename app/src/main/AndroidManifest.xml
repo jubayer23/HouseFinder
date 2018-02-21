@@ -7,7 +7,7 @@
 
     <!-- Required to show current location -->
     <permission
-        android:name="com.shaficonsultancy.mydetails.my_details.permission.MAPS_RECEIVE"
+        android:name="com.creative.housefinder.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

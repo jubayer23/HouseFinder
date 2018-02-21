@@ -1,12 +1,15 @@
 package com.creative.housefinder;
 
 import android.*;
+import android.Manifest;
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.creative.housefinder.Utility.DeviceInfoUtils;
 import com.creative.housefinder.Utility.GpsEnableTool;
@@ -14,8 +17,13 @@ import com.creative.housefinder.Utility.LastLocationOnly;
 import com.creative.housefinder.Utility.RunnTimePermissions;
 import com.creative.housefinder.alertbanner.AlertDialogForAnything;
 import com.creative.housefinder.fragment.HouseListFragment;
+import com.creative.housefinder.model.House;
+
+import java.util.List;
 
 public class MainActivity extends BaseActivity {
+
+    private List<House> houses;
 
     private static final String TAG_HOUSE_LIST_FRAGMENT = "House List Fragment";
     private HouseListFragment houseListFragment;
@@ -70,7 +78,11 @@ public class MainActivity extends BaseActivity {
             // DeviceInfoUtils.checkMarshMallowPermission(this);
             int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
             int result2 = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
-            if (result == PackageManager.PERMISSION_GRANTED && result2 ==  PackageManager.PERMISSION_GRANTED) {
+            int result3 = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (result == PackageManager.PERMISSION_GRANTED && result2 ==  PackageManager.PERMISSION_GRANTED
+                    && result3 == PackageManager.PERMISSION_GRANTED ) {
+                Log.d("DEBUG","fragment attach");
+
                 houseListFragment = new HouseListFragment();
                 FragmentTransaction transaction = getSupportFragmentManager()
                         .beginTransaction();
@@ -78,5 +90,23 @@ public class MainActivity extends BaseActivity {
                         .commit();
             }
         }
+    }
+
+
+    public List<House> getHouses() {
+        return houses;
+    }
+
+    public void setHouses(List<House> houses) {
+        this.houses = houses;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(houseListFragment != null && houseListFragment.isAdded()){
+            houseListFragment.onActivityResult(requestCode, resultCode, data);
+        }
+
     }
 }

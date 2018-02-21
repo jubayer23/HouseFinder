@@ -38,9 +38,6 @@ public class GpsEnableTool {
     public void enableGPs() {
 
         locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(20 * 1000);
-        locationRequest.setFastestInterval(5 * 1000);
 
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(LocationServices.API)

@@ -27,8 +27,14 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.creative.housefinder.MainActivity;
 import com.creative.housefinder.R;
 import com.creative.housefinder.Utility.CommonMethods;
+import com.creative.housefinder.Utility.GpsEnableTool;
+import com.creative.housefinder.Utility.LastLocationOnly;
+import com.creative.housefinder.appdata.MydApplication;
+import com.creative.housefinder.model.House;
+import com.creative.housefinder.model.Houses;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,6 +58,10 @@ public class HouseListFragment extends Fragment implements View.OnClickListener 
 
     private static final String TAG_REQUEST_HOME_PAGE = "tag_volley_request_in_home_page";
 
+    private List<House> houses;
+
+    private LastLocationOnly lastLocationOnly;
+
 
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -70,7 +80,25 @@ public class HouseListFragment extends Fragment implements View.OnClickListener 
     public void onActivityCreated(Bundle SavedInstanceState) {
         super.onActivityCreated(SavedInstanceState);
 
-        CommonMethods.copyRawFileToExternalMemory(getActivity());
+       // CommonMethods.copyRawFileToExternalMemory2(getActivity());
+        if(((MainActivity)getActivity()).getHouses() == null){
+            String json= "{ \"houses\": "+ CommonMethods.read_file(getActivity()) + "}";
+            houses = MydApplication.gson.fromJson(json, Houses.class).getHouses();
+            ((MainActivity)getActivity()).setHouses(houses);
+            Log.e("DEBUG", String.valueOf(houses.size()));
+
+        }else{
+            houses = ((MainActivity)getActivity()).getHouses();
+        }
+
+        lastLocationOnly = new LastLocationOnly(getActivity());
+
+        if(lastLocationOnly.canGetLocation()){
+
+        }else{
+            GpsEnableTool gpsEnableTool = new GpsEnableTool(getActivity());
+            gpsEnableTool.enableGPs();
+        }
 
     }
 
@@ -89,6 +117,8 @@ public class HouseListFragment extends Fragment implements View.OnClickListener 
 
 
 
+
+
     }
 
 
@@ -102,31 +132,10 @@ public class HouseListFragment extends Fragment implements View.OnClickListener 
     }
 
 
-
-    // Calling:
-/*
-    Context context = getApplicationContext();
-    String filename = "log.txt";
-    String str = read_file(context, filename);
-*/
-    public String read_file(Context context, String filename) {
-        try {
-            FileInputStream fis = context.openFileInput(filename);
-            InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
-            BufferedReader bufferedReader = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            return sb.toString();
-        } catch (FileNotFoundException e) {
-            return "";
-        } catch (UnsupportedEncodingException e) {
-            return "";
-        } catch (IOException e) {
-            return "";
-        }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.e("DEBUG","its called");
     }
 
     private ProgressDialog progressDialog;

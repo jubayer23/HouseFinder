@@ -9,7 +9,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -29,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class GpsServiceUpdate extends Service {
+public class GpsServiceUpdate2 extends Service {
     // Connection detector class
     private static final String TAG_GPS_UPDATE_SERVICE = "tag_gps_update_service";
 
@@ -44,8 +43,6 @@ public class GpsServiceUpdate extends Service {
     private static Location previousBestLocation = null;
 
     public LocationManager locationManager;
-    boolean gps_enabled = false;
-    boolean network_enabled = false;
 
     public MyLocationListener listener;
 
@@ -69,60 +66,17 @@ public class GpsServiceUpdate extends Service {
 
     }
 
-
-    // Binder given to clients
-    private final IBinder binder = new LocalBinder();
-    // Registered callbacks
-    private ServiceCallbacks serviceCallbacks;
-
-
-    // Class used for the client Binder.
-    public class LocalBinder extends Binder {
-        public GpsServiceUpdate getService() {
-            // Return this instance of MyService so clients can call public methods
-            return GpsServiceUpdate.this;
-        }
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
-    }
-
-    public void setCallbacks(ServiceCallbacks callbacks) {
-        serviceCallbacks = callbacks;
-    }
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
 
-        return startGpsUpdate();
-
-    }
-
-    public int startGpsUpdate() {
         if (listener == null) {
             listener = new MyLocationListener();
         }
-        if (locationManager == null) {
-            locationManager = (LocationManager) getSystemService(getApplicationContext().LOCATION_SERVICE);
-        }
+        locationManager = (LocationManager) getSystemService(getApplicationContext().LOCATION_SERVICE);
+        LocationProvider gpsProvider = locationManager.getProvider(LocationManager.GPS_PROVIDER);
 
-        //exceptions will be thrown if provider is not permitted.
-        try {
-            gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-        }
-        try {
-            network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        //don't start listeners if no provider is enabled
-        if (!gps_enabled && !network_enabled) {
-            return START_STICKY;
-        } else if (gps_enabled) {
+        if (gpsProvider != null) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
@@ -139,15 +93,6 @@ public class GpsServiceUpdate extends Service {
                     MIN_DISTANCE_CHANGE_FOR_UPDATES,
                     listener
             );
-            //Log.d("DEBUG","gps enabled");
-        } else if (network_enabled) {
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES,
-                    listener
-            );
-           // Log.d("DEBUG","network enabled");
         }
 
 
@@ -158,7 +103,7 @@ public class GpsServiceUpdate extends Service {
 
         @Override
         public void onLocationChanged(Location location) {
-            Log.d("DEBUG", "change");
+             Log.d("DEBUG", "change");
 
             final double loc_lat = CommonMethods.roundFloatToFiveDigitAfterDecimal(location.getLatitude());
             final double loc_lng = CommonMethods.roundFloatToFiveDigitAfterDecimal(location.getLongitude());
@@ -176,7 +121,6 @@ public class GpsServiceUpdate extends Service {
 
                 String user_lat = String.valueOf(loc_lat);
                 String user_lang = String.valueOf(loc_lng);
-                serviceCallbacks.refreshList(location);
 
                 /*Save User Location In Shared Pref*/
                 // AppController.getInstance().getPrefManger().setUserLastKnownLat(user_lat);
@@ -198,13 +142,21 @@ public class GpsServiceUpdate extends Service {
 
         @Override
         public void onProviderDisabled(String provider) {
-           Toast.makeText(getApplicationContext(), "Gps Disabled", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Gps Disabled", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onProviderEnabled(String provider) {
             Toast.makeText(getApplicationContext(), "Gps Enabled", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        // TODO Auto-generated method stub
+        //Log.d("DEBUG", "onBind");
+        return null;
     }
 
 
@@ -301,10 +253,6 @@ public class GpsServiceUpdate extends Service {
             locationManager.removeUpdates(listener);
             locationManager = null;
         }
-    }
-
-    public interface ServiceCallbacks {
-        void refreshList(Location location);
     }
 
 }

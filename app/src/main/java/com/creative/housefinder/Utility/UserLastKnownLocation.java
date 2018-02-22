@@ -12,6 +12,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,7 +56,8 @@ public class UserLastKnownLocation {
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
                 return false;
-            }lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
+            }
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
         if (network_enabled)
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNetwork);
         timer1 = new Timer();
@@ -116,24 +118,25 @@ public class UserLastKnownLocation {
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
                     return;
-                }gps_loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if(network_enabled)
-                net_loc=lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
+            gps_loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (network_enabled)
+                net_loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
             //if there are both values use the latest one
-            if(gps_loc!=null && net_loc!=null){
-                if(gps_loc.getTime()>net_loc.getTime())
+            if (gps_loc != null && net_loc != null) {
+                if (gps_loc.getTime() > net_loc.getTime())
                     locationResult.gotLocation(gps_loc);
                 else
                     locationResult.gotLocation(net_loc);
                 return;
             }
 
-            if(gps_loc!=null){
+            if (gps_loc != null) {
                 locationResult.gotLocation(gps_loc);
                 return;
             }
-            if(net_loc!=null){
+            if (net_loc != null) {
                 locationResult.gotLocation(net_loc);
                 return;
             }
@@ -141,7 +144,7 @@ public class UserLastKnownLocation {
         }
     }
 
-    public static abstract class LocationResult{
+    public static abstract class LocationResult {
         public abstract void gotLocation(Location location);
     }
 }

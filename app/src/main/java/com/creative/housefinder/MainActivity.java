@@ -136,6 +136,9 @@ public class MainActivity extends BaseActivity {
                 //startActivity(new Intent(getActivity(), WishListActivity.class));
                 // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
                 break;
+            case R.id.action_setting:
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                break;
         }
 
         return false;

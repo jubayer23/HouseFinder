@@ -1,11 +1,13 @@
 package com.creative.housefinder.fragment;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
@@ -17,6 +19,10 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.creative.housefinder.MainActivity;
 import com.creative.housefinder.R;
@@ -26,6 +32,7 @@ import com.creative.housefinder.Utility.LastLocationOnly;
 import com.creative.housefinder.Utility.UserLastKnownLocation;
 import com.creative.housefinder.adapter.HouseAdapter;
 import com.creative.housefinder.appdata.MydApplication;
+import com.creative.housefinder.customView.RecyclerItemClickListener;
 import com.creative.housefinder.model.House;
 import com.creative.housefinder.model.Houses;
 import com.creative.housefinder.service.GpsServiceUpdate;
@@ -117,6 +124,21 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(houseAdapter);
+
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        House clickedHouse = top_ten_closest_houses.get(position);
+
+
+                        showSendingOptionsDialog(clickedHouse);
+
+
+
+                    }
+                })
+        );
 
 
     }
@@ -289,6 +311,89 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem paramMenuItem) {
+
+        switch (paramMenuItem.getItemId()) {
+
+
+            case R.id.action_refresh:
+                forceRefreshLocation();
+                // startActivity(new Intent("android.intent.action.VIEW", Uri.parse("market://details?id=com.ydoodle.mymoneymanager")));
+                // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
+                break;
+            case R.id.action_help:
+                // This case is handled in MainActvity
+                break;
+        }
+
+        return super.onOptionsItemSelected(paramMenuItem);
+    }
+
+
+
+    private void showSendingOptionsDialog(final House selectedHouse) {
+        final Dialog dialog_start = new Dialog(getActivity(),
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_sending_options);
+
+        /*From which button this activity is come from is available on call_from variable
+        * for example :
+        *
+        * if (call_from.equals(MainActivity.TAG_QUICK_SEND){
+        *    //Its from quick send button
+        * }else if(call_from.equals(MainActivity.TAG_SHARE_CARD){
+        *    //Its from share card button
+        * }else if(call_from.equals(MainActivity.TAG_MY_CARD_LISTS){
+        *    //Its from My card button
+        * }*/
+        TextView tv_house_number = dialog_start.findViewById(R.id.tv_house_number);
+        tv_house_number.setText("House no: "  + selectedHouse.getHouse());
+        TextView tv_street_number = dialog_start.findViewById(R.id.tv_street_number);
+        tv_street_number.setText(selectedHouse.getStreetName());
+
+        Button btn_no_bag = (Button) dialog_start.findViewById(R.id.btn_no_bag);
+        Button btn_tag_contaminated = (Button) dialog_start.findViewById(R.id.btn_tag_contaminated);
+        Button btn_tag_overweight = (Button) dialog_start.findViewById(R.id.btn_tag_overweight);
+        Button btn_attach_pic = (Button) dialog_start.findViewById(R.id.btn_attach_pic);
+        ImageView img_close_dialog = (ImageView) dialog_start.findViewById(R.id.img_close_dialog);
+        img_close_dialog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog_start.dismiss();
+            }
+        });
+
+        btn_no_bag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
+
+        btn_tag_contaminated.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        btn_tag_overweight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
+
+
+        dialog_start.show();
+
+    }
+
+
     private ProgressDialog progressDialog;
 
     public void showProgressDialog(String message, boolean isIntermidiate, boolean isCancelable) {
@@ -314,24 +419,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem paramMenuItem) {
 
-        switch (paramMenuItem.getItemId()) {
-
-
-            case R.id.action_refresh:
-                forceRefreshLocation();
-                // startActivity(new Intent("android.intent.action.VIEW", Uri.parse("market://details?id=com.ydoodle.mymoneymanager")));
-                // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
-                break;
-            case R.id.action_help:
-                // This case is handled in MainActvity
-                break;
-        }
-
-        return super.onOptionsItemSelected(paramMenuItem);
-    }
 
 
 }

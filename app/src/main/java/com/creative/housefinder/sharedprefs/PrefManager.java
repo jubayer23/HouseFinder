@@ -38,6 +38,8 @@ public class PrefManager {
     private static final String PREF_NAME = BuildConfig.APPLICATION_ID;
 
     private static final String KEY_EMAIL_CACHE = "key_email_cache";
+    private static final String KEY_NAME = "key_name";
+    private static final String KEY_NUMBER = "key_number";
 
     public PrefManager(Context context) {
         this._context = context;
@@ -55,6 +57,31 @@ public class PrefManager {
     }
     public String getEmailCache() {
         return pref.getString(KEY_EMAIL_CACHE,"");
+    }
+
+
+   public void setName(String obj) {
+        editor = pref.edit();
+
+        editor.putString(KEY_NAME, obj);
+
+        // commit changes
+        editor.commit();
+    }
+    public String getName() {
+        return pref.getString(KEY_NAME,"");
+    }
+
+    public void setNumber(String obj) {
+        editor = pref.edit();
+
+        editor.putString(KEY_NUMBER, obj);
+
+        // commit changes
+        editor.commit();
+    }
+    public String getNumber() {
+        return pref.getString(KEY_NUMBER,"");
     }
 
 }

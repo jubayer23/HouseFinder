@@ -18,4 +18,11 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="btnTransparentWithBlackBackgroundNormal">
+        <item name="android:background">@drawable/btn_selector_tranparent_black_border</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/font_medium</item>
+    </style>
+
 </resources>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:weightSum="11">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/background_rounded_white_border_black"
+        android:orientation="vertical"
+        android:weightSum="5">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:text="House No: 406"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:id="@+id/tv_house_number"
+            android:layout_marginTop="4dp"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Street: adsd"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_below="@id/tv_house_number"
+            android:id="@+id/tv_street_number"
+            android:layout_centerHorizontal="true"/>
+
+        <ImageView
+            android:id="@+id/img_close_dialog"
+            android:layout_marginTop="7dp"
+            android:layout_marginRight="7dp"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_close_red_24dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_street_number"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btn_no_bag"
+                style="@style/btnTransparentWithBlackBackgroundNormal"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Bags not out" />
+
+            <Button
+                android:id="@+id/btn_tag_contaminated"
+                style="@style/btnTransparentWithBlackBackgroundNormal"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Tagged: Contaminated" />
+
+
+            <Button
+                android:id="@+id/btn_tag_overweight"
+                style="@style/btnTransparentWithBlackBackgroundNormal"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Tagged: Overweight" />
+
+            <Button
+                android:id="@+id/btn_attach_pic"
+                style="@style/btnTransparentWithBlackBackgroundNormal"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Placement: Attach pic" />
+        </LinearLayout>
+
+
+
+
+    </RelativeLayout>
+
+</LinearLayout>

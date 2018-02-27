@@ -160,8 +160,8 @@ public class GpsServiceUpdate extends Service {
         public void onLocationChanged(Location location) {
             Log.d("DEBUG", "change");
 
-            final double loc_lat = CommonMethods.roundFloatToFiveDigitAfterDecimal(location.getLatitude());
-            final double loc_lng = CommonMethods.roundFloatToFiveDigitAfterDecimal(location.getLongitude());
+            final double loc_lat = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLatitude());
+            final double loc_lng = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLongitude());
             location.setLatitude(loc_lat);
             location.setLongitude(loc_lng);
 
@@ -284,16 +284,7 @@ public class GpsServiceUpdate extends Service {
     }
 
 
-    @Override
-    public void onDestroy() {
-        // handler.removeCallbacks(sendUpdatesToUI);
-        super.onDestroy();
-        //Log.v("STOP_SERVICE", "DONE");
-
-        if (mWakeLock != null) {
-            mWakeLock.release();
-        }
-
+    public void stopGps(){
         if (ContextCompat.checkSelfPermission(_context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(_context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -301,6 +292,21 @@ public class GpsServiceUpdate extends Service {
             locationManager.removeUpdates(listener);
             locationManager = null;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        // handler.removeCallbacks(sendUpdatesToUI);
+
+        //Log.v("STOP_SERVICE", "DONE");
+
+        if (mWakeLock != null) {
+            mWakeLock.release();
+        }
+
+        stopGps();
+
+        super.onDestroy();
     }
 
     public interface ServiceCallbacks {

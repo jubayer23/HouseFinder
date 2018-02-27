@@ -37,37 +37,51 @@ public class House implements Parcelable
     @SerializedName("Address Text")
     @Expose
     private String addressText;
-    public final static Creator<House> CREATOR = new Creator<House>() {
+
+    private double distance;
 
 
-        @SuppressWarnings({
-            "unchecked"
-        })
+
+    public House() {
+    }
+
+    protected House(Parcel in) {
+        unit = in.readString();
+        streetName = in.readString();
+        city = in.readString();
+        prov = in.readString();
+        postalCode = in.readString();
+        addressText = in.readString();
+        distance = in.readDouble();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(unit);
+        dest.writeString(streetName);
+        dest.writeString(city);
+        dest.writeString(prov);
+        dest.writeString(postalCode);
+        dest.writeString(addressText);
+        dest.writeDouble(distance);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<House> CREATOR = new Creator<House>() {
+        @Override
         public House createFromParcel(Parcel in) {
             return new House(in);
         }
 
+        @Override
         public House[] newArray(int size) {
-            return (new House[size]);
+            return new House[size];
         }
-
-    }
-    ;
-
-    protected House(Parcel in) {
-        this.unit = ((String) in.readValue((String.class.getClassLoader())));
-        this.house = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        this.streetName = ((String) in.readValue((String.class.getClassLoader())));
-        this.city = ((String) in.readValue((String.class.getClassLoader())));
-        this.prov = ((String) in.readValue((String.class.getClassLoader())));
-        this.postalCode = ((String) in.readValue((String.class.getClassLoader())));
-        this.longitude = ((Double) in.readValue((Double.class.getClassLoader())));
-        this.latitude = ((Double) in.readValue((Double.class.getClassLoader())));
-        this.addressText = ((String) in.readValue((String.class.getClassLoader())));
-    }
-
-    public House() {
-    }
+    };
 
     public String getUnit() {
         return unit;
@@ -141,20 +155,11 @@ public class House implements Parcelable
         this.addressText = addressText;
     }
 
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(unit);
-        dest.writeValue(house);
-        dest.writeValue(streetName);
-        dest.writeValue(city);
-        dest.writeValue(prov);
-        dest.writeValue(postalCode);
-        dest.writeValue(longitude);
-        dest.writeValue(latitude);
-        dest.writeValue(addressText);
+    public double getDistance() {
+        return distance;
     }
 
-    public int describeContents() {
-        return  0;
+    public void setDistance(double distance) {
+        this.distance = distance;
     }
-
 }

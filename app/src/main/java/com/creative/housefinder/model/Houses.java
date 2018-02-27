@@ -32,7 +32,7 @@ public class Houses implements Parcelable
     ;
 
     protected Houses(Parcel in) {
-        in.readList(this.houses, (com.creative.housefinder.model.House.class.getClassLoader()));
+        in.readList(this.houses, (House.class.getClassLoader()));
     }
 
     public Houses() {

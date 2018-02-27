@@ -3,6 +3,7 @@ package com.creative.housefinder;
 import android.*;
 import android.Manifest;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.FragmentTransaction;
@@ -10,6 +11,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.creative.housefinder.Utility.DeviceInfoUtils;
 import com.creative.housefinder.Utility.GpsEnableTool;
@@ -76,8 +85,8 @@ public class MainActivity extends BaseActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == RunnTimePermissions.PERMISSION_ALL) {
             // DeviceInfoUtils.checkMarshMallowPermission(this);
-            int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-            int result2 = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION);
+            int result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+            int result2 = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
             int result3 = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (result == PackageManager.PERMISSION_GRANTED && result2 ==  PackageManager.PERMISSION_GRANTED
                     && result3 == PackageManager.PERMISSION_GRANTED ) {
@@ -108,5 +117,51 @@ public class MainActivity extends BaseActivity {
             houseListFragment.onActivityResult(requestCode, resultCode, data);
         }
 
+    }
+
+
+    public boolean onCreateOptionsMenu(Menu paramMenu) {
+        getMenuInflater().inflate(R.menu.menu_main, paramMenu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem paramMenuItem) {
+
+        switch (paramMenuItem.getItemId()) {
+
+            case R.id.action_help:
+                View menuItemView = findViewById(R.id.action_help);
+                showPopUpWindow(menuItemView);
+                //startActivity(new Intent(getActivity(), WishListActivity.class));
+                // Toast.makeText(MainActivity.this,"Please publish your app on play store first!",Toast.LENGTH_LONG).show();
+                break;
+        }
+
+        return false;
+    }
+
+
+    private PopupWindow popupwindow_obj;
+
+    public void showPopUpWindow(View v) {
+        popupwindow_obj = popupDisplay();
+        popupwindow_obj.showAsDropDown(v, -40, 18);
+    }
+
+    public PopupWindow popupDisplay() {
+
+        final PopupWindow popupWindow = new PopupWindow(this);
+        // inflate your layout or dynamically add view
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        View view = inflater.inflate(R.layout.popup_window_info, null);
+
+        popupWindow.setFocusable(true);
+        popupWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+        popupWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+        popupWindow.setContentView(view);
+
+        return popupWindow;
     }
 }

@@ -38,9 +38,6 @@
         <service
             android:name=".service.GpsServiceUpdate"
             android:enabled="true" />
-        <service
-            android:name=".service.GpsServiceUpdate2"
-            android:enabled="true" />
 
 
         <meta-data

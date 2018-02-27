@@ -316,6 +316,16 @@ public class CommonMethods {
         return (double) Math.round(value * 100000d) / 100000d;
 
     }
+    public static double roundFloatToSixDigitAfterDecimal(double value){
+
+        return (double) Math.round(value * 1000000d) / 1000000d;
+
+    }
+    public static double roundFloatToTwoDigitAfterDecimal(double value){
+
+        return (double) Math.round(value * 100d) / 100d;
+
+    }
 
 
     /*"yyyy-MM-dd HH:mm:ss"*/

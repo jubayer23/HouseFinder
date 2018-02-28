@@ -9,6 +9,7 @@ public class GlobalAppAccess {
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
     public static final String URL_LOGIN = BaseUrl +   "deliveryBoyLogin";
     public static final String URL_DELIVERY_BOY_LOCATION = BaseUrl +  "updateDeliveryBoyLocation";
+    public static final String URL_GOOGLE_MAP = "http://maps.google.com/maps?f=q&q=";
 
 
     public static final  int SUCCESS = 1;

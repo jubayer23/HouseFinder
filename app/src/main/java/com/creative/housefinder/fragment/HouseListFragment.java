@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -31,6 +32,7 @@ import com.creative.housefinder.Utility.GpsEnableTool;
 import com.creative.housefinder.Utility.LastLocationOnly;
 import com.creative.housefinder.Utility.UserLastKnownLocation;
 import com.creative.housefinder.adapter.HouseAdapter;
+import com.creative.housefinder.appdata.GlobalAppAccess;
 import com.creative.housefinder.appdata.MydApplication;
 import com.creative.housefinder.customView.RecyclerItemClickListener;
 import com.creative.housefinder.model.House;
@@ -180,7 +182,6 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             count++;
             if(count == 10)break;
         }*/
-
         sortLocations(loc_lat,loc_lng);
 
         top_ten_closest_houses.clear();
@@ -263,18 +264,30 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         }
     };
 
-    public List<House> sortLocations( final double myLatitude,final double myLongitude) {
+    public void sortLocations( final double myLatitude,final double myLongitude) {
         Comparator comp = new Comparator<House>() {
             @Override
             public int compare(House o, House o2) {
-                float[] result1 = new float[3];
-                Location.distanceBetween(myLatitude, myLongitude, o.getLatitude(), o.getLongitude(), result1);
-                Float distance1 = result1[0];
+
+
+                Location startPoint=new Location("locationA");
+                startPoint.setLatitude(myLatitude);
+                startPoint.setLongitude(myLongitude);
+
+                Location endPoint=new Location("locationB");
+                endPoint.setLatitude(o.getLatitude());
+                endPoint.setLongitude(o.getLongitude());
+
+                Float distance1 = startPoint.distanceTo(endPoint);
+
                 o.setDistance(distance1);
 
-                float[] result2 = new float[3];
-                Location.distanceBetween(myLatitude, myLongitude, o2.getLatitude(), o2.getLongitude(), result2);
-                Float distance2 = result2[0];
+                Location endPoint2 = new Location("locationC");
+                endPoint.setLatitude(o2.getLatitude());
+                endPoint.setLongitude(o2.getLongitude());
+
+                Float distance2 = startPoint.distanceTo(endPoint2);
+
                 o2.setDistance(distance2);
 
                 return distance1.compareTo(distance2);
@@ -283,7 +296,6 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
 
         Collections.sort(houses, comp);
-        return houses;
     }
 
 
@@ -338,6 +350,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         dialog_start.setCancelable(true);
         dialog_start.setContentView(R.layout.dialog_sending_options);
 
+
         /*From which button this activity is come from is available on call_from variable
         * for example :
         *
@@ -369,6 +382,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
+                Button btn = (Button)v;
+
+                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
 
             }
         });
@@ -377,6 +393,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
+                Button btn = (Button)v;
+
+                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
             }
         });
 
@@ -384,6 +403,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
+                Button btn = (Button)v;
+
+                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
 
             }
         });
@@ -391,6 +413,30 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
         dialog_start.show();
 
+    }
+
+    private void sendSms(String address, String tag, double lat, double lang){
+        String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf(lat) + "," + String.valueOf(lang) + ")";
+
+        String body = address + ";\n\n" + tag + ";\n\n" + mapLink;
+        String phoneNo = MydApplication.getInstance().getPrefManger().getNumber();
+
+        if(phoneNo.isEmpty()){
+            Toast.makeText(getActivity(),"Please first set the phone number from the settings.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phoneNo, null, body, null, null);
+            Toast.makeText(getActivity(), "Message Sent",
+                    Toast.LENGTH_LONG).show();
+        } catch (Exception ex) {
+            Toast.makeText(getActivity(),ex.getMessage().toString(),
+                    Toast.LENGTH_LONG).show();
+            ex.printStackTrace();
+        }
     }
 
 

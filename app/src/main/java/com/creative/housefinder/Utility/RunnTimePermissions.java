@@ -29,6 +29,7 @@ public class RunnTimePermissions {
     public static int PERMISSION_ALL = 1;
     public static String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.SEND_SMS,
             Manifest.permission.ACCESS_FINE_LOCATION};
 
     public static boolean requestForAllRuntimePermissions(Context context) {

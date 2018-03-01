@@ -10,6 +10,7 @@ import android.location.Location;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -32,6 +33,7 @@ import com.creative.housefinder.Utility.GpsEnableTool;
 import com.creative.housefinder.Utility.LastLocationOnly;
 import com.creative.housefinder.Utility.UserLastKnownLocation;
 import com.creative.housefinder.adapter.HouseAdapter;
+import com.creative.housefinder.alertbanner.AlertDialogForAnything;
 import com.creative.housefinder.appdata.GlobalAppAccess;
 import com.creative.housefinder.appdata.MydApplication;
 import com.creative.housefinder.customView.RecyclerItemClickListener;
@@ -157,6 +159,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void gotLocation(Location location) {
 
+                GpsServiceUpdate.user_lat = location.getLatitude();
+                GpsServiceUpdate.user_lang = location.getLongitude();
+
                 refreshList(location);
 
 
@@ -169,20 +174,30 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     /* Defined by ServiceCallbacks interface */
     @Override
     public void refreshList(Location location) {
+        showProgressDialog("List is refreshing..", true, false);
         //Log.d("DEBUG", "its called from service update");
         final double loc_lat = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLatitude());
         final double loc_lng = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLongitude());
 
 
         /*for(House house:houses){
-            float[] result1 = new float[3];
-            android.location.Location.distanceBetween(loc_lat, loc_lng, house.getLatitude(), house.getLongitude(), result1);
-            Float distance1 = result1[0];
-            Log.d("DEBUG", String.valueOf(distance1));
-            count++;
-            if(count == 10)break;
+            Log.d("DEBUG", String.valueOf(house.getDistance()));
         }*/
-        sortLocations(loc_lat,loc_lng);
+
+       // sortLocations(49.45812,-119.578193);
+
+        calculateDistance(loc_lat,loc_lng);
+
+        Collections.sort(houses);
+
+        /*for(int i = 0; i<houses.size(); i++){
+            Log.d("DEBUG_3", String.valueOf(houses.get(i).getDistance()));
+        }*/
+       /* int count2 = 0;
+        for(int i = houses.size() - 1; count2 < 150; i--, count2++){
+            Log.e("DEBUG_4", String.valueOf(houses.get(i).getDistance()));
+        }*/
+
 
         top_ten_closest_houses.clear();
         int count = 0;
@@ -264,6 +279,24 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         }
     };
 
+
+    private void calculateDistance(final double myLatitude,final double myLongitude){
+        for(House house:houses){
+            Location startPoint=new Location("locationA");
+            startPoint.setLatitude(myLatitude);
+            startPoint.setLongitude(myLongitude);
+
+            Location endPoint=new Location("locationB");
+            endPoint.setLatitude(house.getLatitude());
+            endPoint.setLongitude(house.getLongitude());
+
+            Float distance = startPoint.distanceTo(endPoint);
+            // Log.d("DEBUG_1",String.valueOf(distance1));
+
+            house.setDistance(distance);
+        }
+    }
+
     public void sortLocations( final double myLatitude,final double myLongitude) {
         Comparator comp = new Comparator<House>() {
             @Override
@@ -278,7 +311,8 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
                 endPoint.setLatitude(o.getLatitude());
                 endPoint.setLongitude(o.getLongitude());
 
-                Float distance1 = startPoint.distanceTo(endPoint);
+                double distance1 = startPoint.distanceTo(endPoint);
+               // Log.d("DEBUG_1",String.valueOf(distance1));
 
                 o.setDistance(distance1);
 
@@ -286,11 +320,21 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
                 endPoint.setLatitude(o2.getLatitude());
                 endPoint.setLongitude(o2.getLongitude());
 
-                Float distance2 = startPoint.distanceTo(endPoint2);
+                double distance2 = startPoint.distanceTo(endPoint2);
+                //Log.d("DEBUG_2",String.valueOf(distance1));
 
                 o2.setDistance(distance2);
 
-                return distance1.compareTo(distance2);
+
+                if (distance1 > distance2) {
+                    return 1;
+                }
+                else if (distance1 <  distance2) {
+                    return -1;
+                }
+                else {
+                    return 0;
+                }
             }
         };
 
@@ -416,9 +460,10 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     }
 
     private void sendSms(String address, String tag, double lat, double lang){
-        String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf(lat) + "," + String.valueOf(lang) + ")";
+        String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf( GpsServiceUpdate.user_lat) + "," + String.valueOf( GpsServiceUpdate.user_lang) + ")";
 
-        String body = address + ";\n\n" + tag + ";\n\n" + mapLink;
+
+        String driverName = MydApplication.getInstance().getPrefManger().getName();
         String phoneNo = MydApplication.getInstance().getPrefManger().getNumber();
 
         if(phoneNo.isEmpty()){
@@ -427,17 +472,28 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             return;
         }
 
+        if(driverName.isEmpty()){
+            Toast.makeText(getActivity(),"Please first set your name from the settings.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
+        String body =  address + ";\n\n" + tag + ";\n\n" + "Driver name: " + driverName + ";\n" + "Driver location: " + mapLink;
+
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNo, null, body, null, null);
-            Toast.makeText(getActivity(), "Message Sent",
-                    Toast.LENGTH_LONG).show();
+            AlertDialogForAnything.showNotifyDialog(getActivity(),AlertDialogForAnything.ALERT_TYPE_SUCCESS);
         } catch (Exception ex) {
+            AlertDialogForAnything.showNotifyDialog(getActivity(),AlertDialogForAnything.ALERT_TYPE_ERROR);
             Toast.makeText(getActivity(),ex.getMessage().toString(),
                     Toast.LENGTH_LONG).show();
             ex.printStackTrace();
         }
     }
+
+
 
 
     private ProgressDialog progressDialog;
@@ -448,7 +504,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             progressDialog = new ProgressDialog(getActivity());
         }
         if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
+           return;
         }
         progressDialog.setIndeterminate(isIntermidiate);
         progressDialog.setCancelable(isCancelable);

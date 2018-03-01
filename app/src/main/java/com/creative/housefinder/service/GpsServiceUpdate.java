@@ -154,6 +154,8 @@ public class GpsServiceUpdate extends Service {
         return START_STICKY;
     }
 
+    public static double user_lat = 0.0;
+    public static double user_lang = 0.0;
     public class MyLocationListener implements LocationListener {
 
         @Override
@@ -162,6 +164,8 @@ public class GpsServiceUpdate extends Service {
 
             final double loc_lat = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLatitude());
             final double loc_lng = CommonMethods.roundFloatToSixDigitAfterDecimal(location.getLongitude());
+            user_lat = loc_lat;
+            user_lang = loc_lng;
             location.setLatitude(loc_lat);
             location.setLongitude(loc_lng);
 

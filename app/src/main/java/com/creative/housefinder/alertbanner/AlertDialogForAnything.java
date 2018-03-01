@@ -4,10 +4,16 @@ package com.creative.housefinder.alertbanner;
  * Created by jubayer on 5/9/2017.
  */
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.creative.housefinder.R;
 
 public class AlertDialogForAnything {
 
@@ -83,6 +89,41 @@ public class AlertDialogForAnything {
             }
         });
         alertDialog.show();
+    }
+
+
+    public static final int  ALERT_TYPE_SUCCESS = 0;
+    public static final int  ALERT_TYPE_ERROR = 1;
+
+
+    public static void showNotifyDialog(Context context,int alert_type){
+        final Dialog dialog_start = new Dialog(context,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog_start.setCancelable(true);
+        dialog_start.setContentView(R.layout.dialog_notify);
+        LinearLayout ll_container = (LinearLayout) dialog_start.findViewById(R.id.ll_container);
+        TextView tv_msg = (TextView) dialog_start.findViewById(R.id.tv_dialog_alert);
+
+        switch (alert_type){
+            case ALERT_TYPE_SUCCESS:
+                ll_container.setBackgroundResource(R.drawable.background_rounded_green);
+                tv_msg.setText("SMS sent successfully!!!");
+                break;
+            case ALERT_TYPE_ERROR:
+                ll_container.setBackgroundResource(R.drawable.background_rounded_red);
+                tv_msg.setText("There is a error while sending SMS!!!");
+                break;
+        }
+
+        dialog_start.show();
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                dialog_start.dismiss();
+            }
+        }, 4000);
     }
 
 

@@ -41,6 +41,7 @@ public class HouseAdapter extends RecyclerView.Adapter<HouseAdapter.MyViewHolder
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView tv_house_number;
+        TextView tv_unit;
         TextView tv_street_number;
         TextView tv_city;
         TextView tv_distance;
@@ -51,6 +52,7 @@ public class HouseAdapter extends RecyclerView.Adapter<HouseAdapter.MyViewHolder
             tv_street_number = (TextView) view.findViewById(R.id.tv_street_number);
             tv_city = (TextView) view.findViewById(R.id.tv_city);
             tv_distance = (TextView) view.findViewById(R.id.tv_distance);
+            tv_unit = (TextView) view.findViewById(R.id.tv_unit);
         }
     }
 
@@ -76,6 +78,13 @@ public class HouseAdapter extends RecyclerView.Adapter<HouseAdapter.MyViewHolder
         holder.tv_street_number.setText("Street: "+event.getStreetName());
         holder.tv_city.setText("City: "+event.getCity());
         holder.tv_distance.setText("Distance: "+ "0.00 KM");
+
+        if(event.getUnit() != null && event.getUnit().length() > 3){
+            holder.tv_unit.setVisibility(View.VISIBLE);
+            holder.tv_unit.setText(event.getUnit());
+        }else{
+            holder.tv_unit.setVisibility(View.GONE);
+        }
 
         if(event.getDistance() != 0){
             double distance = event.getDistance() / 1000;

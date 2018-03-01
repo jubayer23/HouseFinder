@@ -4,10 +4,12 @@ package com.creative.housefinder.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.Parcelable.Creator;
+import android.support.annotation.NonNull;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class House implements Parcelable
+public class House implements Parcelable,Comparable<House>
 {
 
     @SerializedName("Unit #")
@@ -161,5 +163,18 @@ public class House implements Parcelable
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    @Override
+    public int compareTo(@NonNull House house) {
+        if (this.distance > house.getDistance()) {
+            return 1;
+        }
+        else if (this.distance <  house.getDistance()) {
+            return -1;
+        }
+        else {
+            return 0;
+        }
     }
 }

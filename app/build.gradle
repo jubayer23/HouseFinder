@@ -35,5 +35,8 @@ dependencies {
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.android.gms:play-services-location:10.2.4'
     compile 'com.google.android.gms:play-services-maps:10.2.4'
+    compile 'com.iceteck.silicompressorr:silicompressor:2.0'
+    compile 'com.theartofdev.edmodo:android-image-cropper:2.3.+'
+    compile 'com.klinkerapps:android-smsmms:4.3.0'
     testCompile 'junit:junit:4.12'
 }

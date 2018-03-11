@@ -15,6 +15,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.creative.housefinder.BuildConfig;
+import com.creative.housefinder.appdata.MydApplication;
+import com.creative.housefinder.model.House;
+import com.creative.housefinder.model.Houses;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +36,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jubayer on 5/11/2017.
@@ -128,8 +132,8 @@ public class CommonMethods {
     /**
      * Directory that files are to be read from and written to
      **/
-    protected static final File DIRECTORY =
-            new File(Environment.getExternalStorageDirectory(), "HouseFinder");
+    public static final File DIRECTORY =
+            new File(Environment.getExternalStorageDirectory(), "Tattletale");
 
     public static final String FILE_NAME = "house_coordinates.json";
 
@@ -221,6 +225,42 @@ public class CommonMethods {
                     // NOOP
                 }
             }
+        }
+
+    }
+
+
+    public static void copyRawFileToInternalMemory(){
+        Log.d("DEBUG","copy start 1");
+
+
+        String s = "";
+        String fileContent = "";
+        try {
+            // Create new file to copy into.
+            //File file = new File(Environment.getExternalStorageDirectory() + java.io.File.separator + "NewFile.dat");
+            String filename = FILE_NAME;
+            File exportDir = DIRECTORY;
+            File outFile = new File(exportDir, filename);
+
+
+            FileInputStream fIn = new FileInputStream(outFile);
+            BufferedReader myReader = new BufferedReader(
+                    new InputStreamReader(fIn));
+
+            while ((s = myReader.readLine()) != null) {
+               // Log.d("DEBUG",s);
+                fileContent += s + "\n";
+            }
+            myReader.close();
+
+            //Log.d("DEBUG",fileContent);
+            String json = "{ \"houses\": " + fileContent + "}";
+            List<House> houses = MydApplication.gson.fromJson(json, Houses.class).getHouses();
+            MydApplication.getInstance().getPrefManger().setHouses(houses);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }

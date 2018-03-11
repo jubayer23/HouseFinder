@@ -30,7 +30,8 @@ public class RunnTimePermissions {
     public static String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.SEND_SMS,
-            Manifest.permission.ACCESS_FINE_LOCATION};
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.CAMERA};
 
     public static boolean requestForAllRuntimePermissions(Context context) {
 

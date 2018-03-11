@@ -123,7 +123,7 @@ public class AlertDialogForAnything {
             public void run() {
                 dialog_start.dismiss();
             }
-        }, 4000);
+        }, 2000);
     }
 
 

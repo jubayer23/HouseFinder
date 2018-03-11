@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+
+
+
     <!-- Required to show current location -->
     <permission
         android:name="com.creative.housefinder.permission.MAPS_RECEIVE"
@@ -17,6 +20,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+
 
     <application
         android:name=".appdata.MydApplication"
@@ -46,6 +52,45 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name=".SettingsActivity"></activity>
+
+        <activity android:name=".helperActivity.OpenCameraToTakePic" />
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+
+
+
+
+
+
+
+
+
+
+
+        <service android:name="com.android.mms.transaction.TransactionService"/>
+
+        <receiver
+            android:name="com.klinker.android.send_message.SentReceiver"
+            android:taskAffinity="com.creative.housefinder.SMS_SENT"/>
+
+        <receiver
+            android:name="com.klinker.android.send_message.DeliveredReceiver"
+            android:taskAffinity="com.creative.housefinder.SMS_DELIVERED"/>
+
+        <!-- Your custom receiver which is child of com.klinker.android.send_message.MmsSentReceiver -->
+        <receiver
+            android:name=".receiver.MyMmsSentReceiver"
+            android:taskAffinity="com.klinker.android.messaging.MMS_SENT"/>
     </application>
 
 </manifest>

@@ -1,17 +1,20 @@
 package com.creative.housefinder.fragment;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.net.wifi.WifiManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,16 +34,22 @@ import com.creative.housefinder.R;
 import com.creative.housefinder.Utility.CommonMethods;
 import com.creative.housefinder.Utility.GpsEnableTool;
 import com.creative.housefinder.Utility.LastLocationOnly;
+import com.creative.housefinder.Utility.RunnTimePermissions;
 import com.creative.housefinder.Utility.UserLastKnownLocation;
 import com.creative.housefinder.adapter.HouseAdapter;
 import com.creative.housefinder.alertbanner.AlertDialogForAnything;
 import com.creative.housefinder.appdata.GlobalAppAccess;
 import com.creative.housefinder.appdata.MydApplication;
 import com.creative.housefinder.customView.RecyclerItemClickListener;
+import com.creative.housefinder.helperActivity.OpenCameraToTakePic;
 import com.creative.housefinder.model.House;
 import com.creative.housefinder.model.Houses;
 import com.creative.housefinder.service.GpsServiceUpdate;
+import com.klinker.android.send_message.Message;
+import com.klinker.android.send_message.Settings;
+import com.klinker.android.send_message.Transaction;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -68,6 +77,11 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     private RecyclerView recyclerView;
     private HouseAdapter houseAdapter;
 
+    private static final int CAMERA_ACTIVITY_REQUEST = 1000;
+
+    private static House selectedHouse;
+    private static String selectedTag;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,12 +108,14 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
 
         // CommonMethods.copyRawFileToExternalMemory2(getActivity());
-        if (((MainActivity) getActivity()).getHouses() == null) {
+        if (MydApplication.getInstance().getPrefManger().getHouses().isEmpty()) {
             String json = "{ \"houses\": " + CommonMethods.read_file(getActivity()) + "}";
             houses = MydApplication.gson.fromJson(json, Houses.class).getHouses();
-            ((MainActivity) getActivity()).setHouses(houses);
+            //((MainActivity) getActivity()).setHouses(houses);
+            MydApplication.getInstance().getPrefManger().setHouses(houses);
         } else {
-            houses = ((MainActivity) getActivity()).getHouses();
+            //houses = ((MainActivity) getActivity()).getHouses();
+            houses = MydApplication.getInstance().getPrefManger().getHouses();
         }
 
         lastLocationOnly = new LastLocationOnly(getActivity());
@@ -118,8 +134,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
     private void init(View view) {
 
-        recyclerView = (RecyclerView)view.findViewById(R.id.recycler_view);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
     }
+
     private void initAdapter() {
 
 
@@ -133,11 +150,10 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
                 new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        House clickedHouse = top_ten_closest_houses.get(position);
+                        selectedHouse = top_ten_closest_houses.get(position);
 
 
-                        showSendingOptionsDialog(clickedHouse);
-
+                        showSendingOptionsDialog(selectedHouse);
 
 
                     }
@@ -147,9 +163,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
     }
 
-    private void forceRefreshLocation(){
+    private void forceRefreshLocation() {
 
-        if(bound){
+        if (bound) {
             isFirstLoad = true;
             gpsServiceUpdate.stopGps();
         }
@@ -184,9 +200,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             Log.d("DEBUG", String.valueOf(house.getDistance()));
         }*/
 
-       // sortLocations(49.45812,-119.578193);
+        // sortLocations(49.45812,-119.578193);
 
-        calculateDistance(loc_lat,loc_lng);
+        calculateDistance(loc_lat, loc_lng);
 
         Collections.sort(houses);
 
@@ -201,17 +217,17 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
         top_ten_closest_houses.clear();
         int count = 0;
-        for(House house:houses){
+        for (House house : houses) {
             top_ten_closest_houses.add(house);
             count++;
-            if(count == 10)break;
+            if (count == 10) break;
         }
 
         houseAdapter.notifyDataSetChanged();
 
 
         if (isFirstLoad && bound) {
-           // Log.d("DEBUG","gps start 1st load");
+            // Log.d("DEBUG","gps start 1st load");
             isFirstLoad = false;
             gpsServiceUpdate.startGpsUpdate();
         }
@@ -224,7 +240,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onResume() {
         super.onResume();
-       // Log.d("DEBUG", "resume fragment");
+        // Log.d("DEBUG", "resume fragment");
         // bind to Service
         Intent intent = new Intent(getActivity(), GpsServiceUpdate.class);
         getActivity().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -234,7 +250,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onPause() {
         super.onPause();
-       // Log.d("DEBUG", "paused fragment");
+        // Log.d("DEBUG", "paused fragment");
     }
 
     @Override
@@ -268,7 +284,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             bound = true;
             gpsServiceUpdate.setCallbacks(HouseListFragment.this); // register
             if (!isFirstLoad) {
-               // Log.d("DEBUG","gps start 2nd load");
+                // Log.d("DEBUG","gps start 2nd load");
                 gpsServiceUpdate.startGpsUpdate();
             }
         }
@@ -280,13 +296,13 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     };
 
 
-    private void calculateDistance(final double myLatitude,final double myLongitude){
-        for(House house:houses){
-            Location startPoint=new Location("locationA");
+    private void calculateDistance(final double myLatitude, final double myLongitude) {
+        for (House house : houses) {
+            Location startPoint = new Location("locationA");
             startPoint.setLatitude(myLatitude);
             startPoint.setLongitude(myLongitude);
 
-            Location endPoint=new Location("locationB");
+            Location endPoint = new Location("locationB");
             endPoint.setLatitude(house.getLatitude());
             endPoint.setLongitude(house.getLongitude());
 
@@ -297,22 +313,22 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         }
     }
 
-    public void sortLocations( final double myLatitude,final double myLongitude) {
+    public void sortLocations(final double myLatitude, final double myLongitude) {
         Comparator comp = new Comparator<House>() {
             @Override
             public int compare(House o, House o2) {
 
 
-                Location startPoint=new Location("locationA");
+                Location startPoint = new Location("locationA");
                 startPoint.setLatitude(myLatitude);
                 startPoint.setLongitude(myLongitude);
 
-                Location endPoint=new Location("locationB");
+                Location endPoint = new Location("locationB");
                 endPoint.setLatitude(o.getLatitude());
                 endPoint.setLongitude(o.getLongitude());
 
                 double distance1 = startPoint.distanceTo(endPoint);
-               // Log.d("DEBUG_1",String.valueOf(distance1));
+                // Log.d("DEBUG_1",String.valueOf(distance1));
 
                 o.setDistance(distance1);
 
@@ -328,11 +344,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
                 if (distance1 > distance2) {
                     return 1;
-                }
-                else if (distance1 <  distance2) {
+                } else if (distance1 < distance2) {
                     return -1;
-                }
-                else {
+                } else {
                     return 0;
                 }
             }
@@ -355,7 +369,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == GpsEnableTool.REQUEST_CHECK_SETTINGS){
+        if (requestCode == GpsEnableTool.REQUEST_CHECK_SETTINGS) {
             lastLocationOnly = new LastLocationOnly(getActivity());
 
             if (lastLocationOnly.canGetLocation()) {
@@ -363,6 +377,41 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
                 forceRefreshLocation();
 
             }
+        }
+
+        if (requestCode == CAMERA_ACTIVITY_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                String filePath = data.getStringExtra(OpenCameraToTakePic.KEY_FILE_URL);
+                Log.d("DEBUG", filePath);
+                String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf(GpsServiceUpdate.user_lat) + "," + String.valueOf(GpsServiceUpdate.user_lang) + ")";
+
+                String body = selectedHouse.getAddressText() + ";\n\n" + selectedTag + ";\n\n" + "Driver name: " + MydApplication.getInstance().getPrefManger().getName() + ";\n" + "Driver location: " + mapLink;
+
+
+               Intent picMessageIntent = new Intent(android.content.Intent.ACTION_SEND);
+               // picMessageIntent.setType("image/jpeg");
+               // Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                //smsIntent.setType("vnd.android-dir/mms-sms");
+                picMessageIntent.setType("image/jpeg");
+                picMessageIntent.putExtra("address", MydApplication.getInstance().getPrefManger().getNumber());
+                picMessageIntent.putExtra("sms_body", body);
+                picMessageIntent.putExtra(Intent.EXTRA_STREAM, getOutputMediaFileUri(filePath));
+                if(dialog_start != null && dialog_start.isShowing()){
+                    dialog_start.dismiss();
+                }
+                startActivity(picMessageIntent);
+
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+                String error_message = data.getStringExtra(OpenCameraToTakePic.KEY_ERROR);
+
+                if (error_message.equalsIgnoreCase(OpenCameraToTakePic.CRUSH)) {
+                    AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Error", "Crop functionality does not work on your phone!", false);
+                }
+
+            }
+
         }
 
     }
@@ -386,14 +435,21 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         return super.onOptionsItemSelected(paramMenuItem);
     }
 
+    public void importHouses(){
+        houses.clear();
+        houses.addAll(MydApplication.getInstance().getPrefManger().getHouses());
+        forceRefreshLocation();
+    }
 
-
+    Dialog dialog_start;
     private void showSendingOptionsDialog(final House selectedHouse) {
-        final Dialog dialog_start = new Dialog(getActivity(),
+        if(dialog_start != null && dialog_start.isShowing()){
+            dialog_start.dismiss();
+        }
+        dialog_start = new Dialog(getActivity(),
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
         dialog_start.setContentView(R.layout.dialog_sending_options);
-
 
         /*From which button this activity is come from is available on call_from variable
         * for example :
@@ -406,7 +462,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         *    //Its from My card button
         * }*/
         TextView tv_house_number = dialog_start.findViewById(R.id.tv_house_number);
-        tv_house_number.setText("House no: "  + selectedHouse.getHouse());
+        tv_house_number.setText("House no: " + selectedHouse.getHouse());
         TextView tv_street_number = dialog_start.findViewById(R.id.tv_street_number);
         tv_street_number.setText(selectedHouse.getStreetName());
 
@@ -426,9 +482,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
-                Button btn = (Button)v;
+                Button btn = (Button) v;
 
-                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
+                sendSms(selectedHouse.getAddressText(), btn.getText().toString(), selectedHouse.getLatitude(), selectedHouse.getLongitude());
 
             }
         });
@@ -437,9 +493,9 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
-                Button btn = (Button)v;
+                Button btn = (Button) v;
 
-                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
+                sendSms(selectedHouse.getAddressText(), btn.getText().toString(), selectedHouse.getLatitude(), selectedHouse.getLongitude());
             }
         });
 
@@ -447,10 +503,21 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             @Override
             public void onClick(View v) {
 
-                Button btn = (Button)v;
+                Button btn = (Button) v;
 
-                sendSms(selectedHouse.getAddressText(),btn.getText().toString(),selectedHouse.getLatitude(), selectedHouse.getLongitude());
+                sendSms(selectedHouse.getAddressText(), btn.getText().toString(), selectedHouse.getLatitude(), selectedHouse.getLongitude());
 
+            }
+        });
+
+        btn_attach_pic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!RunnTimePermissions.requestForAllRuntimePermissions(getActivity())) return;
+                Button btn = (Button) view;
+                selectedTag = btn.getText().toString();
+                Intent intent = new Intent(getActivity(), OpenCameraToTakePic.class);
+                startActivityForResult(intent, CAMERA_ACTIVITY_REQUEST);
             }
         });
 
@@ -459,41 +526,44 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
 
     }
 
-    private void sendSms(String address, String tag, double lat, double lang){
-        String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf( GpsServiceUpdate.user_lat) + "," + String.valueOf( GpsServiceUpdate.user_lang) + ")";
+
+
+    private void sendSms(String address, String tag, double lat, double lang) {
+        String mapLink = GlobalAppAccess.URL_GOOGLE_MAP + "(" + String.valueOf(GpsServiceUpdate.user_lat) + "," + String.valueOf(GpsServiceUpdate.user_lang) + ")";
 
 
         String driverName = MydApplication.getInstance().getPrefManger().getName();
         String phoneNo = MydApplication.getInstance().getPrefManger().getNumber();
 
-        if(phoneNo.isEmpty()){
-            Toast.makeText(getActivity(),"Please first set the phone number from the settings.",
+        if (phoneNo.isEmpty()) {
+            Toast.makeText(getActivity(), "Please first set the phone number from the settings.",
                     Toast.LENGTH_LONG).show();
             return;
         }
 
-        if(driverName.isEmpty()){
-            Toast.makeText(getActivity(),"Please first set your name from the settings.",
+        if (driverName.isEmpty()) {
+            Toast.makeText(getActivity(), "Please first set your name from the settings.",
                     Toast.LENGTH_LONG).show();
             return;
         }
 
 
-        String body =  address + ";\n\n" + tag + ";\n\n" + "Driver name: " + driverName + ";\n" + "Driver location: " + mapLink;
+        String body = address + ";\n\n" + tag + ";\n\n" + "Driver name: " + driverName + ";\n" + "Driver location: " + mapLink;
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNo, null, body, null, null);
-            AlertDialogForAnything.showNotifyDialog(getActivity(),AlertDialogForAnything.ALERT_TYPE_SUCCESS);
+            if(dialog_start != null && dialog_start.isShowing()){
+                dialog_start.dismiss();
+            }
+            AlertDialogForAnything.showNotifyDialog(getActivity(), AlertDialogForAnything.ALERT_TYPE_SUCCESS);
         } catch (Exception ex) {
-            AlertDialogForAnything.showNotifyDialog(getActivity(),AlertDialogForAnything.ALERT_TYPE_ERROR);
-            Toast.makeText(getActivity(),ex.getMessage().toString(),
+            AlertDialogForAnything.showNotifyDialog(getActivity(), AlertDialogForAnything.ALERT_TYPE_ERROR);
+            Toast.makeText(getActivity(), ex.getMessage().toString(),
                     Toast.LENGTH_LONG).show();
             ex.printStackTrace();
         }
     }
-
-
 
 
     private ProgressDialog progressDialog;
@@ -504,7 +574,7 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
             progressDialog = new ProgressDialog(getActivity());
         }
         if (progressDialog.isShowing()) {
-           return;
+            return;
         }
         progressDialog.setIndeterminate(isIntermidiate);
         progressDialog.setCancelable(isCancelable);
@@ -521,7 +591,13 @@ public class HouseListFragment extends Fragment implements View.OnClickListener,
         }
     }
 
+    public Uri getOutputMediaFileUri(String path) {
+        File file = new File(path);
+        //return Uri.fromFile(AccessDirectory.getOutputMediaFile());
 
+        return FileProvider.getUriForFile(getActivity(), getActivity().getApplicationContext().getPackageName() + ".provider", file);
 
+        //return Uri.fromFile( AccessDirectory.getOutputMediaFile());
+    }
 
 }

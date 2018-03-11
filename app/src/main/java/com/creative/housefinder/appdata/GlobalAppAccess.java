@@ -5,6 +5,8 @@ package com.creative.housefinder.appdata;
 public class GlobalAppAccess {
 
 
+    public static final String APP_NAME = "HouseFinder";
+    public static final String FOLDER_NAME_COMPRESS_IMAGES = "HFCompress";
     public static String BaseUrl = "http://204.12.241.178:8084/tajashop/";
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
     public static final String URL_LOGIN = BaseUrl +   "deliveryBoyLogin";
